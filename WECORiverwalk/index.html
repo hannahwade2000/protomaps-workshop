@@ -1,84 +1,70 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Protomaps - Parade</title>
-    <meta charset="utf-8" />
-    <script src="https://unpkg.com/maplibre-gl@^5.2.0/dist/maplibre-gl.js"></script>
-    <link href="https://unpkg.com/maplibre-gl@^5.2.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/pmtiles@4.2.1/dist/pmtiles.js"></script>
-    <script src="https://unpkg.com/@protomaps/basemaps@5.0.0/dist/basemaps.js"></script>
-    <style>
-        body {
-            margin: 0;
-        }
-
-        #map {
-            height: 100%;
-            width: 100%;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <title>Portions of the West Columbia/Cayce Riverwalk that are open or closed</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0;bottom:0; width:100vw; height:100vh; }
+  </style>
 </head>
-
 <body>
-    <!-- This div is where the map gets drawn! -->
-    <div id="map"></div>
+<div id="map"></div>
+<script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/pmtiles@3.1.3/dist/pmtiles.js"></script>
+<script>
+  // Register PMTiles protocol with MapLibre
+  const protocol = new pmtiles.Protocol();
+  maplibregl.addProtocol("pmtiles", protocol.tile);
 
-    <script type="text/javascript">
-        let protocol = new pmtiles.Protocol();
-        maplibregl.addProtocol("pmtiles", protocol.tile);
+  // Adjust bounds/center/zoom for your city!
+  const map = new maplibregl.Map({
+    container: "map",
+    style: {
+      version: 8,
+      sources: {
+        "city-tiles": {
+          type: "vector",
+          url: "pmtiles://city.pmtiles"
+        }
+      },
+      layers: [
+        {
+          id: "city-basemap",
+          type: "line",
+          source: "city-tiles",
+          "source-layer": "basemap-riverwalk.pmtiles", // <-- Update this to the layer name within PMTiles!
+          paint: {"line-color": "#0074D9", "line-width": 1}
+        }
+      ]
+    },
+    center: [33.994928, -81.052450], // [lng, lat], update to center of your city
+    zoom: 12 // adjust as needed
+  });
 
-        // This is where we build the map
-        const map = new maplibregl.Map({
-            container: "map",
-            zoom: 10,
-            center: [-73.96, 40.70],
-            style: {
-                version: 8,
-                glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
-                sprite: `https://protomaps.github.io/basemaps-assets/sprites/v4/light`,
-                sources: {
-                    basemap: {
-                        type: "vector",
-                        url: "pmtiles://./basemap-riverwalk.pmtiles",
-                        attribution: "<a href='https://protomaps.com'>Protomaps</a> <a href='https://openstreetmap.org/copyright'>© OpenStreetMap Contributors</a>"
-                    },
-                    other_source: {
-                        type: "geojson",
-                        data: "./map(9).geojson"
-                    }
-                },
-                layers: [
-                    ...basemaps.layers("basemap", basemaps.namedFlavor("white"), { lang: "en" }),
-                    {
-                        id: "other_layer",
-                        source: "other_source",
-                        type: "line",
-                        paint: {
-                            "line-color": "red",
-                            "line-width": 4,
-                            "line-dasharray": [2, 1]
-                        }
-                    },
-                ]
-            },
-        });
+  // Add GeoJSON layer after map loads
+  map.on("load", function() {
+    map.addSource("city-geojson", {
+      type: "geojson",
+      data: "city.geojson"
+    });
+    map.addLayer({
+      id: "city-geojson-layer",
+      type: "fill",
+      source: "city-geojson",
+      paint: {"fill-color": "#FF851B", "fill-opacity": 0.3}
+    });
+    // Optionally add outline if GeoJSON is polygons:
+    map.addLayer({
+      id: "city-geojson-outline",
+      type: "line",
+      source: "city-geojson",
+      paint: {"line-color": "#FF4136", "line-width": 2}
+    });
+  });
+</script>
 
-        // map.addControl add zoom buttons to the map (and others if you want).
-        map.addControl(new maplibregl.NavigationControl({
-            showZoom: true,
-            showCompass: false
-        }));
-
-        // map.fitBounds pre-zooms the map to fit the latitude/longitude boundaries
-        // of the parade route. Points are the southwest and northeast corners.
-        // Helpful for resizing to maps of different sizes! (Mobile or desktop)
-        map.fitBounds([
-            [-73.9893449101245,
-                40.749794902874214],
-            [-73.97409920488721,
-                40.778823050358085]
-        ], { padding: 20 });
-    </script>
 </body>
-
 </html>
