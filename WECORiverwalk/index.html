@@ -41,7 +41,7 @@
                     },
                     // other_source: {
                     //   type: "geojson",
-                    //   data: "../data/riverwalk.geojson"
+                    //   data: "./riverwalk.geojson"
                     // }
                 },
                 layers: [
@@ -57,6 +57,13 @@
                 ]
             },
         });
+        // map.fitBounds pre-zooms the map to fit the latitude/longitude boundaries
+        // of the parade route. Points are the southwest and northeast corners.
+        // Helpful for resizing to maps of different sizes! (Mobile or desktop)
+        map.fitBounds([
+            [-81.085364,33.927485],
+            [-81.006547,34.016989]
+        ], { padding: 20 });
     </script>
 </body>
 
